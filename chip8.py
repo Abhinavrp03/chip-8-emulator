@@ -28,18 +28,18 @@ class CHIP8:
         for i in range(len(self.fontset)):
             self.memory[i]=self.fontset[i]
 
-    def load_binary(self,filepath):
+    def load_binfile(self,filepath):
         with open(filepath,"rb") as f:
             binary=f.read()
         for i,byte in enumerate(binary):
             self.memory[0x200+i]=byte
 
-    def save_state(self,filepath):
+    def save_binfile(self,filepath):
         state={"memory":self.memory,"V":self.V,"I":self.I,"PC":self.PC,"stack":self.stack,"sp":self.sp,"delay_timer":self.delay_timer,"sound_timer":self.sound_timer,"display":self.display,"keys":self.keys}
         with open(filepath,"wb") as f:
             pickle.dump(state,f)
 
-    def load_state(self,filepath):
+    def load_binstate(self,filepath):
         with open(filepath,"rb") as f:
             state=pickle.load(f)
         self.memory=state["memory"]
@@ -171,9 +171,9 @@ class CHIP8:
                 if event.key in self.key_mapping:
                     self.keys[self.key_mapping[event.key]]=1
                 elif event.key==pygame.K_F5:
-                    self.save_state("chip8_state.save")
+                    self.save_binfile("chip8_state.save")
                 elif event.key==pygame.K_F8:
-                    self.load_state("chip8_state.save")
+                    self.load_binstate("chip8_state.save")
             elif event.type==pygame.KEYUP:
                 if event.key in self.key_mapping:
                     self.keys[self.key_mapping[event.key]]=0
@@ -192,5 +192,5 @@ class CHIP8:
 
 if __name__=="__main__":
     emulator=CHIP8(scale=10)
-    emulator.load_binary("Logo.ch8")
+    emulator.load_binfile("Logo.ch8")
     emulator.run()

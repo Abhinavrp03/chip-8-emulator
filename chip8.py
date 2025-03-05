@@ -1,7 +1,7 @@
 import pygame
 import random
-import sys
 import pickle
+import sys
 from typing import List, Tuple
 
 class CHIP8:
@@ -99,7 +99,7 @@ class CHIP8:
         elif(opcode&0xF000)==0xA000:
             self.I=nnn
         elif(opcode&0xF000)==0xD000:
-            self.draw_sprite(x,y,n)
+            self.to_drawsprite(x,y,n)
         elif(opcode&0xF0FF)==0xF007:
             self.V[x]=self.delay_timer
         elif(opcode&0xF0FF)==0xF015:
@@ -136,7 +136,7 @@ class CHIP8:
         else:
             print(f"Unknown opcode: {hex(opcode)}")
 
-    def draw_sprite(self,x,y,height):
+    def to_drawsprite(self,x,y,height):
         self.V[0xF]=0
         x_coord=self.V[x]%64
         y_coord=self.V[y]%32
@@ -154,7 +154,7 @@ class CHIP8:
                         self.V[0xF]=1
                     self.display[screen_y][screen_x]^=1
 
-    def update_display(self):
+    def updatedisp(self):
         self.screen.fill((0,0,0))
         for y in range(32):
             for x in range(64):
@@ -187,7 +187,7 @@ class CHIP8:
         while True:
             self.handle_input()
             self.emulate_cycle()
-            self.update_display()
+            self.updatedisp()
             self.clock.tick(60)
 
 if __name__=="__main__":

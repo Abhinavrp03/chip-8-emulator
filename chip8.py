@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import pickle
 
 class Chip8:
     def __init__(self):
@@ -18,17 +19,15 @@ class Chip8:
         self.display = pygame.display.set_mode((self.screen_width * self.pixel_size, self.screen_height * self.pixel_size))
         pygame.display.set_caption("CHIP-8 Emulator")
         self.gfx = [[0 for _ in range(self.screen_width)] for _ in range(self.screen_height)]
-        self.key_map = {pygame.K_1: 0x1, pygame.K_2: 0x2, pygame.K_3: 0x3, pygame.K_4: 0xC, pygame.K_q: 0x4, 
-                        pygame.K_w: 0x5, pygame.K_e: 0x6, pygame.K_r: 0xD, pygame.K_a: 0x7, pygame.K_s: 0x8, 
-                        pygame.K_d: 0x9, pygame.K_f: 0xE, pygame.K_z: 0xA, pygame.K_x: 0x0, pygame.K_c: 0xB, 
-                        pygame.K_v: 0xF}
+        self.key_map = {pygame.K_1: 0x1, pygame.K_2: 0x2, pygame.K_3: 0x3, pygame.K_4: 0xC, pygame.K_q: 0x4, pygame.K_w: 0x5, 
+                        pygame.K_e: 0x6, pygame.K_r: 0xD, pygame.K_a: 0x7, pygame.K_s: 0x8, pygame.K_d: 0x9, pygame.K_f: 0xE, 
+                        pygame.K_z: 0xA, pygame.K_x: 0x0, pygame.K_c: 0xB, pygame.K_v: 0xF}
         self.keys = [0] * 16
-        self.fontset = [0xF0, 0x90, 0x90, 0x90, 0xF0, 0x20, 0x60, 0x20, 0x20, 0x70, 0xF0, 0x10, 0xF0, 0x80, 0xF0, 
-                        0xF0, 0x10, 0xF0, 0x10, 0xF0, 0x90, 0x90, 0xF0, 0x10, 0x10, 0xF0, 0x80, 0xF0, 0x10, 0xF0, 
-                        0xF0, 0x80, 0xF0, 0x90, 0xF0, 0xF0, 0x10, 0x20, 0x40, 0x40, 0xF0, 0x90, 0xF0, 0x90, 0xF0, 
-                        0xF0, 0x90, 0xF0, 0x10, 0xF0, 0xF0, 0x90, 0xF0, 0x90, 0x90, 0xE0, 0x90, 0xE0, 0x90, 0xE0, 
-                        0xF0, 0x80, 0x80, 0x80, 0xF0, 0xE0, 0x90, 0x90, 0x90, 0xE0, 0xF0, 0x80, 0xF0, 0x80, 0xF0, 
-                        0xF0, 0x80, 0xF0, 0x80, 0x80]
+        self.fontset = [0xF0, 0x90, 0x90, 0x90, 0xF0, 0x20, 0x60, 0x20, 0x20, 0x70, 0xF0, 0x10, 0xF0, 0x80, 0xF0, 0xF0, 0x10, 0xF0, 
+                        0x10, 0xF0, 0x90, 0x90, 0xF0, 0x10, 0x10, 0xF0, 0x80, 0xF0, 0x10, 0xF0, 0xF0, 0x80, 0xF0, 0x90, 0xF0, 0xF0, 
+                        0x10, 0x20, 0x40, 0x40, 0xF0, 0x90, 0xF0, 0x90, 0xF0, 0xF0, 0x90, 0xF0, 0x10, 0xF0, 0xF0, 0x90, 0xF0, 0x90,
+                          0x90, 0xE0, 0x90, 0xE0, 0x90, 0xE0, 0xF0, 0x80, 0x80, 0x80, 0xF0, 0xE0, 0x90, 0x90, 0x90, 0xE0, 0xF0, 0x80, 
+                          0xF0, 0x80, 0xF0, 0xF0, 0x80, 0xF0, 0x80, 0x80]
         for i, byte in enumerate(self.fontset):
             self.memory[i] = byte
             
@@ -155,10 +154,45 @@ class Chip8:
         for y in range(self.screen_height):
             for x in range(self.screen_width):
                 if self.gfx[y][x] == 1:
-                    pygame.draw.rect(self.display, (255, 255, 255), (x * self.pixel_size, y * self.pixel_size, 
-                                                                     self.pixel_size, self.pixel_size))
+                    pygame.draw.rect(self.display, (255, 255, 255), (x * self.pixel_size, y * self.pixel_size, self.pixel_size, 
+                                                                     self.pixel_size))
         pygame.display.flip()
-        
+
+    def save(self, filename="chip8.pkl"):
+        state = {
+            'memory': self.memory,
+            'V': self.V,
+            'I': self.I,
+            'pc': self.pc,
+            'stack': self.stack,
+            'delay_timer': self.delay_timer,
+            'sound_timer': self.sound_timer,
+            'gfx': self.gfx,
+            'keys': self.keys
+        }
+        with open(filename, 'wb') as f:
+            pickle.dump(state, f)
+        print(f"State saved to {filename}")
+
+    def load(self, filename="chip8.pkl"):
+        try:
+            with open(filename, 'rb') as f:
+                state = pickle.load(f)
+                self.memory = state['memory']
+                self.V = state['V']
+                self.I = state['I']
+                self.pc = state['pc']
+                self.stack = state['stack']
+                self.delay_timer = state['delay_timer']
+                self.sound_timer = state['sound_timer']
+                self.gfx = state['gfx']
+                self.keys = state['keys']
+            print(f"State loaded from {filename}")
+        except FileNotFoundError:
+            print(f"Save file {filename} not found!")
+        except Exception as e:
+            print(f"Error loading state: {e}")
+
     def handle_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -167,6 +201,10 @@ class Chip8:
             elif event.type == pygame.KEYDOWN:
                 if event.key in self.key_map:
                     self.keys[self.key_map[event.key]] = 1
+                elif event.key == pygame.K_F5:
+                    self.save_state()
+                elif event.key == pygame.K_F6:
+                    self.load_state()
             elif event.type == pygame.KEYUP:
                 if event.key in self.key_map:
                     self.keys[self.key_map[event.key]] = 0
